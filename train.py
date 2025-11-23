@@ -7,8 +7,11 @@
 import os
 
 # ВАЖНО: Установка переменных окружения ДО импорта MLflow
-os.environ['MLFLOW_TRACKING_URI'] = 'file:./mlruns'
-os.environ['MLFLOW_ARTIFACT_ROOT'] = './mlruns'
+# Используем абсолютный путь к директории mlruns
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+MLRUNS_PATH = os.path.join(SCRIPT_DIR, 'mlruns')
+os.environ['MLFLOW_TRACKING_URI'] = f'file:{MLRUNS_PATH}'
+os.environ['MLFLOW_ARTIFACT_ROOT'] = MLRUNS_PATH
 
 import numpy as np
 import pandas as pd
