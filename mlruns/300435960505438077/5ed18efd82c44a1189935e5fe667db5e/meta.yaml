@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yuriy-samorodov/MIPT/Sem3/devops/hw5/mlruns/300435960505438077/5ed18efd82c44a1189935e5fe667db5e/artifacts
+end_time: 1763927770661
+entry_point_name: ''
+experiment_id: '300435960505438077'
+lifecycle_stage: active
+run_id: 5ed18efd82c44a1189935e5fe667db5e
+run_name: enchanting-wasp-250
+run_uuid: 5ed18efd82c44a1189935e5fe667db5e
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1763927766214
+status: 3
+tags: []
+user_id: yuriy-samorodov
