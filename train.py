@@ -7,9 +7,9 @@
 import os
 
 # ВАЖНО: Установка переменных окружения ДО импорта MLflow
-# Используем абсолютный путь к директории mlruns
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-MLRUNS_PATH = os.path.join(SCRIPT_DIR, 'mlruns')
+# Используем текущую рабочую директорию (работает и локально, и в CI/CD)
+WORK_DIR = os.getcwd()
+MLRUNS_PATH = os.path.join(WORK_DIR, 'mlruns')
 os.environ['MLFLOW_TRACKING_URI'] = f'file:{MLRUNS_PATH}'
 os.environ['MLFLOW_ARTIFACT_ROOT'] = MLRUNS_PATH
 
