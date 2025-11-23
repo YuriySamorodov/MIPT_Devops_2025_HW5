@@ -54,7 +54,7 @@ jobs:
     
     # Шаг 7: Сохранение артефактов (отчеты, модели)
     - name: Сохранение артефактов
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: ml-artifacts
@@ -70,4 +70,3 @@ jobs:
       run: |
         echo "Пайплайн завершен успешно"
         echo "Артефакты сохранены и доступны для скачивания"
-
