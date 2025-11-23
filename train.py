@@ -16,6 +16,10 @@ import mlflow.sklearn
 import joblib
 from datetime import datetime
 
+# Установка переменных окружения для MLflow перед любыми операциями
+os.environ['MLFLOW_TRACKING_URI'] = 'file:./mlruns'
+os.environ['MLFLOW_ARTIFACT_ROOT'] = './mlruns'
+
 def create_directories():
     """Создание необходимых директорий для проекта"""
     directories = ['models', 'data', 'reports']
