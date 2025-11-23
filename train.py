@@ -5,6 +5,11 @@
 """
 
 import os
+
+# ВАЖНО: Установка переменных окружения ДО импорта MLflow
+os.environ['MLFLOW_TRACKING_URI'] = 'file:./mlruns'
+os.environ['MLFLOW_ARTIFACT_ROOT'] = './mlruns'
+
 import numpy as np
 import pandas as pd
 from sklearn.datasets import load_iris
@@ -15,10 +20,6 @@ import mlflow
 import mlflow.sklearn
 import joblib
 from datetime import datetime
-
-# Установка переменных окружения для MLflow перед любыми операциями
-os.environ['MLFLOW_TRACKING_URI'] = 'file:./mlruns'
-os.environ['MLFLOW_ARTIFACT_ROOT'] = './mlruns'
 
 def create_directories():
     """Создание необходимых директорий для проекта"""
