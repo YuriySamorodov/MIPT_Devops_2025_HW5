@@ -103,16 +103,19 @@ def train_model(X_train, X_test, y_train, y_test, n_estimators=100, max_depth=5,
         joblib.dump(model, model_path)
         print(f"\nМодель сохранена в {model_path}")
         
-        # Логирование модели в MLflow
-        mlflow.sklearn.log_model(model, "model")
-        mlflow.log_artifact(model_path)
+        # Логирование модели в MLflow (с обработкой ошибок для CI/CD)
+        try:
+            mlflow.sklearn.log_model(model, "model")
+            mlflow.log_artifact(model_path)
+            print("\nМодель успешно залогирована в MLflow")
+        except Exception as e:
+            print(f"\nПредупреждение: не удалось залогировать модель в MLflow: {e}")
+            print("Модель сохранена локально, продолжаем работу...")
         
         # Логирование дополнительной информации
         mlflow.set_tag("model_type", "RandomForest")
         mlflow.set_tag("dataset", "Iris")
         mlflow.set_tag("training_date", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-        
-        print("\nМодель успешно залогирована в MLflow")
         
         return model, metrics
 
