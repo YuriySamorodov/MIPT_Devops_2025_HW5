@@ -5,13 +5,27 @@
 """
 
 import os
+import sys
 
 # ВАЖНО: Установка переменных окружения ДО импорта MLflow
-# Используем текущую рабочую директорию (работает и локально, и в CI/CD)
-WORK_DIR = os.getcwd()
+# Используем абсолютный путь к текущей рабочей директории
+WORK_DIR = os.path.abspath(os.getcwd())
 MLRUNS_PATH = os.path.join(WORK_DIR, 'mlruns')
-os.environ['MLFLOW_TRACKING_URI'] = f'file:{MLRUNS_PATH}'
+
+# Создаем директорию mlruns заранее, чтобы MLflow не пытался создавать её в другом месте
+os.makedirs(MLRUNS_PATH, exist_ok=True)
+
+# Устанавливаем переменные окружения
+os.environ['MLFLOW_TRACKING_URI'] = f'file://{MLRUNS_PATH}'
 os.environ['MLFLOW_ARTIFACT_ROOT'] = MLRUNS_PATH
+os.environ['MLFLOW_REGISTRY_URI'] = f'file://{MLRUNS_PATH}'
+
+# В CI/CD окружении дополнительно переопределяем HOME
+if os.getenv('CI') == 'true' or os.getenv('GITHUB_ACTIONS') == 'true':
+    os.environ['HOME'] = WORK_DIR
+    print(f"CI/CD обнаружен, HOME установлен на: {WORK_DIR}")
+
+print(f"MLflow будет использовать: {MLRUNS_PATH}")
 
 import numpy as np
 import pandas as pd
@@ -53,9 +67,14 @@ def load_and_prepare_data():
 def train_model(X_train, X_test, y_train, y_test, n_estimators=100, max_depth=5, random_state=42):
     """Обучение модели Random Forest с логированием в MLflow"""
     
+    # Явно устанавливаем tracking URI перед каждым экспериментом
+    MLRUNS_PATH = os.path.join(os.path.abspath(os.getcwd()), 'mlruns')
+    mlflow.set_tracking_uri(f'file://{MLRUNS_PATH}')
+    
     # Установка имени эксперимента
-    # (tracking URI уже настроен через переменные окружения в начале файла)
     mlflow.set_experiment("iris_classification")
+    
+    print(f"MLflow tracking URI: {mlflow.get_tracking_uri()}")
     
     with mlflow.start_run():
         print("\nНачало обучения модели...")
@@ -116,7 +135,17 @@ def train_model(X_train, X_test, y_train, y_test, n_estimators=100, max_depth=5,
         try:
             mlflow.sklearn.log_model(model, "model")
             mlflow.log_artifact(model_path)
-            print("\nМодель успешно залогирована в MLflow")
+            
+            # Получаем информацию о текущем эксперименте
+            run_id = mlflow.active_run().info.run_id
+            experiment_id = mlflow.active_run().info.experiment_id
+            mlflow_uri = mlflow.get_tracking_uri()
+            
+            print(f"\nМодель успешно залогирована в MLflow")
+            print(f"Tracking URI: {mlflow_uri}")
+            print(f"Experiment ID: {experiment_id}")
+            print(f"Run ID: {run_id}")
+            print(f"MLFlow артефакты сохранены в: {MLRUNS_PATH}/{experiment_id}/{run_id}/artifacts/")
         except Exception as e:
             print(f"\nПредупреждение: не удалось залогировать модель в MLflow: {e}")
             print("Модель сохранена локально, продолжаем работу...")
