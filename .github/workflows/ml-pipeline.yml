@@ -18,7 +18,7 @@ jobs:
     steps:
     # Шаг 1: Получение кода из репозитория
     - name: Checkout код
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     
     # Шаг 2: Установка Python
     - name: Установка Python 3.9
@@ -70,3 +70,4 @@ jobs:
       run: |
         echo "Пайплайн завершен успешно"
         echo "Артефакты сохранены и доступны для скачивания"
+
