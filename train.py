@@ -45,6 +45,9 @@ def load_and_prepare_data():
 def train_model(X_train, X_test, y_train, y_test, n_estimators=100, max_depth=5, random_state=42):
     """Обучение модели Random Forest с логированием в MLflow"""
     
+    # Настройка MLflow для работы в локальной директории
+    mlflow.set_tracking_uri("file:./mlruns")
+    
     # Установка имени эксперимента
     mlflow.set_experiment("iris_classification")
     
