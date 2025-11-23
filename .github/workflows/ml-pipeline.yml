@@ -34,25 +34,44 @@ jobs:
         pip install -r requirements.txt
         pip install anywidget
     
-    # Шаг 4: Проверка качества данных с Deepchecks
+    # Шаг 4: Подготовка данных
+    - name: Подготовка данных и директорий
+      run: |
+        mkdir -p data reports models
+        if [ ! -f data/iris_dataset.csv ]; then
+          echo "Генерация датасета Iris..."
+          python -c "
+        from sklearn.datasets import load_iris
+        import pandas as pd
+        iris = load_iris()
+        df = pd.DataFrame(iris.data, columns=iris.feature_names)
+        df['target'] = iris.target
+        df.to_csv('data/iris_dataset.csv', index=False)
+        print('Датасет создан')
+          "
+        fi
+    
+    # Шаг 5: Проверка качества данных с Deepchecks
     - name: Проверка данных с Deepchecks
       run: |
         echo "Запуск проверки качества данных..."
         python check_data.py
     
-    # Шаг 5: Анализ дрейфа данных с EvidentlyAI
+    # Шаг 6: Анализ дрейфа данных с EvidentlyAI
     - name: Анализ дрейфа данных с EvidentlyAI
       run: |
         echo "Запуск анализа дрейфа данных..."
         python analyze_drift.py
     
-    # Шаг 6: Обучение модели с MLflow
+    # Шаг 7: Обучение модели с MLflow
     - name: Обучение модели с MLflow
       run: |
         echo "Запуск обучения модели..."
         python train.py
+      env:
+        MLFLOW_TRACKING_URI: file:./mlruns
     
-    # Шаг 7: Сохранение артефактов (отчеты, модели)
+    # Шаг 8: Сохранение артефактов (отчеты, модели)
     - name: Сохранение артефактов
       uses: actions/upload-artifact@v4
       if: always()
@@ -64,7 +83,7 @@ jobs:
           data/
         retention-days: 30
     
-    # Шаг 8: Публикация результатов
+    # Шаг 9: Публикация результатов
     - name: Публикация результатов
       if: always()
       run: |
