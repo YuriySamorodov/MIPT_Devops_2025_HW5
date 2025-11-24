@@ -1,0 +1,6 @@
+artifact_location: /home/runner/work/MIPT_Devops_2025_HW5/MIPT_Devops_2025_HW5/mlruns/243733623978996866
+creation_time: 1763945289201
+experiment_id: '243733623978996866'
+last_update_time: 1763945289201
+lifecycle_stage: active
+name: iris_classification
