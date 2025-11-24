@@ -65,11 +65,25 @@ jobs:
     
     # Шаг 7: Обучение модели с MLflow
     - name: Обучение модели с MLflow
+      env:
+        CI: true
+        HOME: ${{ github.workspace }}
+        MLFLOW_TRACKING_URI: file://${{ github.workspace }}/mlruns
+        MLFLOW_ARTIFACT_ROOT: ${{ github.workspace }}/mlruns
+        MLFLOW_REGISTRY_URI: file://${{ github.workspace }}/mlruns
       run: |
+        echo "Создание директории mlruns..."
+        mkdir -p mlruns
+        echo "Рабочая директория: $(pwd)"
+        echo "HOME: $HOME"
+        echo "MLFLOW_TRACKING_URI: $MLFLOW_TRACKING_URI"
         echo "Запуск обучения модели..."
         python train.py
-      env:
-        MLFLOW_TRACKING_URI: file:./mlruns
+        echo ""
+        echo "Проверка созданных артефактов:"
+        ls -lah mlruns/ || echo "mlruns пуста"
+        du -sh mlruns/ || echo "mlruns не существует"
+        find mlruns/ -type f | head -10 || echo "Нет файлов в mlruns"
     
     # Шаг 8: Сохранение артефактов (отчеты, модели)
     - name: Сохранение артефактов
@@ -78,10 +92,12 @@ jobs:
       with:
         name: ml-artifacts
         path: |
-          reports/
-          models/
-          data/
+          reports/**/*
+          models/**/*
+          data/**/*
+          mlruns/**/*
         retention-days: 30
+        include-hidden-files: true
     
     # Шаг 9: Публикация результатов
     - name: Публикация результатов
