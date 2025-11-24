@@ -85,7 +85,26 @@ jobs:
         du -sh mlruns/ || echo "mlruns не существует"
         find mlruns/ -type f | head -10 || echo "Нет файлов в mlruns"
     
-    # Шаг 8: Сохранение артефактов (отчеты, модели)
+    # Шаг 8: Коммит результатов в репозиторий
+    - name: Коммит MLflow артефактов
+      if: success()
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        
+        # Временно разрешаем добавление mlruns
+        git add -f mlruns/
+        git add -f models/
+        
+        # Проверяем, есть ли изменения
+        if git diff --staged --quiet; then
+          echo "Нет изменений для коммита"
+        else
+          git commit -m "CI: Добавлены MLflow артефакты и модели [skip ci]"
+          git push
+        fi
+    
+    # Шаг 9: Сохранение артефактов (отчеты, модели)
     - name: Сохранение артефактов
       uses: actions/upload-artifact@v4
       if: always()
@@ -99,7 +118,7 @@ jobs:
         retention-days: 30
         include-hidden-files: true
     
-    # Шаг 9: Публикация результатов
+    # Шаг 10: Публикация результатов
     - name: Публикация результатов
       if: always()
       run: |
