@@ -9,6 +9,10 @@ on:
     branches: [ main, master ]
   workflow_dispatch:  # Позволяет запускать вручную
 
+# Права доступа для GITHUB_TOKEN
+permissions:
+  contents: write  # Разрешаем запись в репозиторий
+
 # Определение заданий
 jobs:
   # Задание для проверки качества кода и обучения модели
@@ -92,6 +96,9 @@ jobs:
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
         
+        # Настраиваем аутентификацию с GITHUB_TOKEN
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+        
         # Временно разрешаем добавление mlruns
         git add -f mlruns/
         git add -f models/
@@ -101,7 +108,7 @@ jobs:
           echo "Нет изменений для коммита"
         else
           git commit -m "CI: Добавлены MLflow артефакты и модели [skip ci]"
-          git push
+          git push origin HEAD:${{ github.ref }}
         fi
     
     # Шаг 9: Сохранение артефактов (отчеты, модели)
