@@ -90,8 +90,12 @@ def train_model(X_train, X_test, y_train, y_test, n_estimators=100, max_depth=5,
     print(f"Текущая рабочая директория: {os.getcwd()}")
     print(f"HOME: {os.environ.get('HOME', 'не установлен')}")
     
-    # Установка имени эксперимента
-    experiment_name = "iris_classification"
+    # Каждый запуск создает новый эксперимент с уникальным именем
+    # Используем timestamp для уникальности
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    experiment_name = f"iris_classification_{timestamp}"
+    
+    print(f"Создание нового эксперимента: {experiment_name}")
     mlflow.set_experiment(experiment_name)
     
     with mlflow.start_run():
