@@ -78,22 +78,21 @@ def train_model(X_train, X_test, y_train, y_test, n_estimators=100, max_depth=5,
     """Обучение модели Random Forest с логированием в MLflow"""
     
     # Явно устанавливаем tracking URI перед каждым экспериментом
-    mlruns_path = 'mlruns'
-    mlruns_abs = os.path.abspath(mlruns_path)
+    mlruns_path = 'mlruns/'
     
     # Убеждаемся, что директория существует
-    os.makedirs(mlruns_abs, exist_ok=True)
+    os.makedirs(mlruns_path, exist_ok=True)
     
-    # Устанавливаем tracking URI с явным протоколом file://
-    tracking_uri = f'file://{mlruns_abs}'
-    mlflow.set_tracking_uri(tracking_uri)
+    # Устанавливаем tracking URI с относительным путём
+    mlflow.set_tracking_uri(mlruns_path)
     
     print(f"MLflow tracking URI: {mlflow.get_tracking_uri()}")
     print(f"Текущая рабочая директория: {os.getcwd()}")
     print(f"HOME: {os.environ.get('HOME', 'не установлен')}")
     
     # Установка имени эксперимента
-    mlflow.set_experiment("iris_classification")
+    experiment_name = "iris_classification"
+    mlflow.set_experiment(experiment_name)
     
     with mlflow.start_run():
         print("\nНачало обучения модели...")
