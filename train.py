@@ -15,17 +15,27 @@ MLRUNS_PATH = 'mlruns'
 # Создаем директорию mlruns заранее, чтобы MLflow не пытался создавать её в другом месте
 os.makedirs(MLRUNS_PATH, exist_ok=True)
 
-# Устанавливаем переменные окружения
-os.environ['MLFLOW_TRACKING_URI'] = f'file://{os.path.abspath(MLRUNS_PATH)}'
-os.environ['MLFLOW_ARTIFACT_ROOT'] = os.path.abspath(MLRUNS_PATH)
-os.environ['MLFLOW_REGISTRY_URI'] = f'file://{os.path.abspath(MLRUNS_PATH)}'
-
-# В CI/CD окружении дополнительно переопределяем HOME
+# В CI/CD окружении переопределяем HOME и другие директории
 if os.getenv('CI') == 'true' or os.getenv('GITHUB_ACTIONS') == 'true':
     os.environ['HOME'] = WORK_DIR
+    os.environ['USERPROFILE'] = WORK_DIR  # Для Windows
+    os.environ['HOMEDRIVE'] = ''
+    os.environ['HOMEPATH'] = WORK_DIR
     print(f"CI/CD обнаружен, HOME установлен на: {WORK_DIR}")
 
-print(f"MLflow будет использовать: {os.path.abspath(MLRUNS_PATH)}")
+# Устанавливаем все переменные окружения MLflow
+MLRUNS_ABS_PATH = os.path.abspath(MLRUNS_PATH)
+os.environ['MLFLOW_TRACKING_URI'] = f'file://{MLRUNS_ABS_PATH}'
+os.environ['MLFLOW_ARTIFACT_ROOT'] = MLRUNS_ABS_PATH
+os.environ['MLFLOW_REGISTRY_URI'] = f'file://{MLRUNS_ABS_PATH}'
+os.environ['MLFLOW_ARTIFACT_LOCATION'] = MLRUNS_ABS_PATH
+os.environ['MLFLOW_DEFAULT_ARTIFACT_ROOT'] = MLRUNS_ABS_PATH
+
+# Запрещаем MLflow использовать любые системные директории
+os.environ['MLFLOW_EXPERIMENT_NAME'] = 'iris_classification'
+os.environ['MLFLOW_RUN_ID'] = ''
+
+print(f"MLflow будет использовать: {MLRUNS_ABS_PATH}")
 
 import numpy as np
 import pandas as pd
@@ -69,12 +79,21 @@ def train_model(X_train, X_test, y_train, y_test, n_estimators=100, max_depth=5,
     
     # Явно устанавливаем tracking URI перед каждым экспериментом
     mlruns_path = 'mlruns'
-    mlflow.set_tracking_uri(f'file://{os.path.abspath(mlruns_path)}')
+    mlruns_abs = os.path.abspath(mlruns_path)
+    
+    # Убеждаемся, что директория существует
+    os.makedirs(mlruns_abs, exist_ok=True)
+    
+    # Устанавливаем tracking URI с явным протоколом file://
+    tracking_uri = f'file://{mlruns_abs}'
+    mlflow.set_tracking_uri(tracking_uri)
+    
+    print(f"MLflow tracking URI: {mlflow.get_tracking_uri()}")
+    print(f"Текущая рабочая директория: {os.getcwd()}")
+    print(f"HOME: {os.environ.get('HOME', 'не установлен')}")
     
     # Установка имени эксперимента
     mlflow.set_experiment("iris_classification")
-    
-    print(f"MLflow tracking URI: {mlflow.get_tracking_uri()}")
     
     with mlflow.start_run():
         print("\nНачало обучения модели...")
@@ -133,23 +152,37 @@ def train_model(X_train, X_test, y_train, y_test, n_estimators=100, max_depth=5,
         
         # Логирование модели в MLflow (с обработкой ошибок для CI/CD)
         try:
-            mlflow.sklearn.log_model(model, "model")
-            mlflow.log_artifact(model_path)
-            
-            # Получаем информацию о текущем эксперименте
+            # Получаем информацию о текущем run ДО логирования модели
             run_id = mlflow.active_run().info.run_id
             experiment_id = mlflow.active_run().info.experiment_id
             mlflow_uri = mlflow.get_tracking_uri()
+            artifact_path = mlflow.active_run().info.artifact_uri
+            
+            print(f"\nИнформация о MLflow run:")
+            print(f"  Tracking URI: {mlflow_uri}")
+            print(f"  Artifact URI: {artifact_path}")
+            print(f"  Experiment ID: {experiment_id}")
+            print(f"  Run ID: {run_id}")
+            
+            # Логируем модель и артефакт
+            mlflow.sklearn.log_model(model, "model")
+            mlflow.log_artifact(model_path)
             
             print(f"\nМодель успешно залогирована в MLflow")
             print(f"Локальное сохранение: {os.path.abspath(model_path)}")
             print(f"MLflow директория: {os.path.abspath(mlruns_path)}")
-            print(f"Tracking URI: {mlflow_uri}")
-            print(f"Experiment ID: {experiment_id}")
-            print(f"Run ID: {run_id}")
             print(f"MLflow артефакты: {os.path.abspath(mlruns_path)}/{experiment_id}/{run_id}/artifacts/")
         except Exception as e:
+            import traceback
             print(f"\nПредупреждение: не удалось залогировать модель в MLflow: {e}")
+            print(f"Тип ошибки: {type(e).__name__}")
+            print(f"Полный traceback:")
+            traceback.print_exc()
+            print(f"\nДиагностическая информация:")
+            print(f"  MLflow tracking URI: {mlflow.get_tracking_uri()}")
+            print(f"  Текущая директория: {os.getcwd()}")
+            print(f"  HOME: {os.environ.get('HOME', 'не установлен')}")
+            print(f"  MLFLOW_TRACKING_URI: {os.environ.get('MLFLOW_TRACKING_URI', 'не установлен')}")
             print("Модель сохранена локально, продолжаем работу...")
         
         # Логирование дополнительной информации
