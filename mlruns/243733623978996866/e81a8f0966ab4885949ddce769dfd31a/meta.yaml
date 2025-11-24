@@ -1,0 +1,15 @@
+artifact_uri: /home/runner/work/MIPT_Devops_2025_HW5/MIPT_Devops_2025_HW5/mlruns/243733623978996866/e81a8f0966ab4885949ddce769dfd31a/artifacts
+end_time: 1763945456742
+entry_point_name: ''
+experiment_id: '243733623978996866'
+lifecycle_stage: active
+run_id: e81a8f0966ab4885949ddce769dfd31a
+run_name: luminous-wren-259
+run_uuid: e81a8f0966ab4885949ddce769dfd31a
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1763945454390
+status: 3
+tags: []
+user_id: runner
